@@ -1,0 +1,5 @@
+# find descriptions and declarations in variables.tf
+
+region = "insert your AWS region"
+bucket_name = "insert your s3 bucket name"
+email_address = "insert your subscription email"

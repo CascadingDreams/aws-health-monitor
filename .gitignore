@@ -1,0 +1,19 @@
+*.tfvars
+terraform.tfstate
+github_actions_environment_secret
+TF_VAR_
+.env
+
+# Terraform state — contains sensitive resource details
+*.tfstate
+*.tfstate.backup
+
+# Terraform lock and temp files
+.terraform/
+.terraform.lock.hcl
+
+# Crash logs
+crash.log
+
+# Variable files that might contain secrets
+*.tfvars
