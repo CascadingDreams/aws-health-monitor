@@ -18,4 +18,4 @@ crash.log
 # Variable files that might contain secrets
 *.tfvars
 
-src/handler.zip
+*.zip

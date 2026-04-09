@@ -33,13 +33,21 @@ terraform plan
 terraform apply
 ```
 
+## How it works
+
+1. **EventBridge** triggers the Lambda on an hourly schedule (`rate(1 hour)`)
+2. **Lambda** calls `s3:HeadBucket` on the monitored bucket — healthy = `1`, unhealthy = `0`
+3. The result is pushed to **CloudWatch** as a custom metric (`HealthMonitor/S3BucketHealth`)
+4. A **CloudWatch alarm** watches the metric; if it drops below `1`, it fires
+5. The alarm publishes to an **SNS topic**, which sends an email alert to the configured address
+
 ## Status
 
 - [x] Terraform base config (S3 backend, SNS topic + subscription)
 - [x] IAM role and scoped policy for Lambda
 - [x] Lambda health check function
-- [ ] EventBridge scheduled trigger
-- [ ] CloudWatch alarm
+- [x] EventBridge scheduled trigger (hourly)
+- [x] CloudWatch alarm
 - [ ] CloudWatch dashboard
 - [ ] Runbook
 - [ ] CI pipeline
