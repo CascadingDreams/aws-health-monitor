@@ -1,7 +1,5 @@
 # aws-health-monitor
 
-> Work in progress — runbook coming next.
-
 Serverless AWS infrastructure health monitor built with Python and Terraform.
 
 A Lambda function runs on an hourly schedule, checks S3 bucket availability, publishes a custom metric to CloudWatch, and sends an SNS email alert when the bucket is unreachable. All infrastructure is provisioned as code using Terraform.
