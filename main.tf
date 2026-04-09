@@ -8,25 +8,25 @@ terraform {
 }
 
 provider "aws" {
-    region = var.region
+  region = var.region
 }
 
 # s3 Bucket
 resource "aws_s3_bucket" "hm_s3" {
-    bucket = var.bucket_name
-    
-    tags = {
-        Name = var.bucket_name
-    }
+  bucket = var.bucket_name
+
+  tags = {
+    Name = var.bucket_name
+  }
 }
 
 # SNS Topic
 resource "aws_sns_topic" "sns_topic" {
-    name = "health-monitor-topic"
-    tags = {
-        Project   = "health-monitor"
-        ManagedBy = "Terraform"
-    }
+  name = "health-monitor-topic"
+  tags = {
+    Project   = "health-monitor"
+    ManagedBy = "Terraform"
+  }
 }
 
 # SNS subscription
@@ -45,10 +45,10 @@ data "archive_file" "lambda_zip" {
 
 # lambda function
 resource "aws_lambda_function" "health_monitor_lambda" {
-  filename      = data.archive_file.lambda_zip.output_path
-  function_name = "health-monitor-handler"
-  role          = aws_iam_role.lambda_exec_role.arn
-  handler       = "handler.handler"
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "health-monitor-handler"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "handler.handler"
   runtime          = "python3.12"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
@@ -58,10 +58,10 @@ resource "aws_lambda_function" "health_monitor_lambda" {
       SNS_TOPIC_ARN = aws_sns_topic.sns_topic.arn
     }
   }
-      tags = {
+  tags = {
     Project   = "health-monitor"
     ManagedBy = "Terraform"
-      }
+  }
 }
 
 # EventBridge rule — hourly schedule
@@ -89,15 +89,15 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 
 # CloudWatch alarm - every hour
 resource "aws_cloudwatch_metric_alarm" "health_monitor_alarm" {
-  alarm_name = "health_monitor_alarm"
+  alarm_name          = "health_monitor_alarm"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods = 1
-  metric_name = "S3BucketHealth"
-  namespace = "HealthMonitor"
-  period = 3600
-  statistic = "Minimum"
-  threshold = 1
-  alarm_description = "This alarm triggers when S3 bucket deletion or access permission failures."
-  alarm_actions = [aws_sns_topic.sns_topic.arn]
-  treat_missing_data = "notBreaching" 
+  evaluation_periods  = 1
+  metric_name         = "S3BucketHealth"
+  namespace           = "HealthMonitor"
+  period              = 3600
+  statistic           = "Minimum"
+  threshold           = 1
+  alarm_description   = "This alarm triggers when S3 bucket deletion or access permission failures."
+  alarm_actions       = [aws_sns_topic.sns_topic.arn]
+  treat_missing_data  = "notBreaching"
 }
