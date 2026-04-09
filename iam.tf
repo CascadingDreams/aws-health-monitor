@@ -61,4 +61,3 @@ resource "aws_iam_role_policy" "lambda_exec" {
   role   = aws_iam_role.lambda_exec_role.id
   policy = data.aws_iam_policy_document.health_monitor.json
 }
-

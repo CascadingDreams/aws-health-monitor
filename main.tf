@@ -44,7 +44,7 @@ data "archive_file" "lambda_zip" {
 }
 
 # lambda function
-resource "aws_lambda_function" "health-monitor-lambda" {
+resource "aws_lambda_function" "health_monitor_lambda" {
   filename      = data.archive_file.lambda_zip.output_path
   function_name = "health-monitor-handler"
   role          = aws_iam_role.lambda_exec_role.arn
@@ -62,4 +62,42 @@ resource "aws_lambda_function" "health-monitor-lambda" {
     Project   = "health-monitor"
     ManagedBy = "Terraform"
       }
+}
+
+# EventBridge rule — hourly schedule
+resource "aws_cloudwatch_event_rule" "lambda" {
+  name                = "health-alert-hourly"
+  description         = "Triggers s3 health check every hour"
+  schedule_expression = "rate(1 hour)"
+}
+
+# EventBridge target — points the rule at Lambda
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  target_id = "hourly-alert"
+  rule      = aws_cloudwatch_event_rule.lambda.name
+  arn       = aws_lambda_function.health_monitor_lambda.arn
+}
+
+# Lambda permission — allows EventBridge to invoke Lambda
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowEventBridgeToInvokeLambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.health_monitor_lambda.arn
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.lambda.arn
+}
+
+# CloudWatch alarm - every hour
+resource "aws_cloudwatch_metric_alarm" "health_monitor_alarm" {
+  alarm_name = "health_monitor_alarm"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods = 1
+  metric_name = "S3BucketHealth"
+  namespace = "HealthMonitor"
+  period = 3600
+  statistic = "Minimum"
+  threshold = 1
+  alarm_description = "This alarm triggers when S3 bucket deletion or access permission failures."
+  alarm_actions = [aws_sns_topic.sns_topic.arn]
+  treat_missing_data = "notBreaching" 
 }
